@@ -33,10 +33,10 @@ Diagrams, designs, and documentation:
 
 Senior Backend & Cloud Engineer with 12+ years of experience in .NET and Azure. Azure cloud solutions architect certified (AZ-305).
 Also I have more Azure certifications such as:
-• Microsoft Certified: Azure Fundamentals (AZ-900).
-• Microsoft Certified: Data Fundamentals (DP-900).
-• Microsoft Certified: AI Fundamentals (AI-900).
-• Microsoft Certified: Azure Developer Associate (AZ-204).
-• Microsoft Certified: Azure Administrator Associate (AZ-104).
-• Microsoft Certified: Azure Cloud Solutions Architect Expert (AZ-305).
+- Microsoft Certified: Azure Fundamentals (AZ-900).
+- Microsoft Certified: Data Fundamentals (DP-900).
+- Microsoft Certified: AI Fundamentals (AI-900).
+- Microsoft Certified: Azure Developer Associate (AZ-204).
+- Microsoft Certified: Azure Administrator Associate (AZ-104).
+- Microsoft Certified: Azure Cloud Solutions Architect Expert (AZ-305).
 
