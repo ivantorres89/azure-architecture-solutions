@@ -1,0 +1,79 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.3.0 Chrome/140.0.7339.249 Electron/38.7.2 Safari/537.36" version="29.3.0">
+  <diagram name="Page-1" id="V0MmyuDpE63pXciobZnX">
+    <mxGraphModel dx="2505" dy="1131" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="UZUvFCjk0S72Gqz5m2nO-60" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="540" width="970" x="-30" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="NebWJtjN_IMYLuVvaxee-8" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="285" width="440" x="20" y="765" as="geometry" />
+        </mxCell>
+        <mxCell id="hqy1qkleqE4f_aJoNf-f-2" parent="1" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/networking/Virtual_Networks.svg;" value="West US - Primary Region" vertex="1">
+          <mxGeometry height="20" width="33.5" x="210" y="990" as="geometry" />
+        </mxCell>
+        <mxCell id="hqy1qkleqE4f_aJoNf-f-14" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="202" y="625" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hqy1qkleqE4f_aJoNf-f-15" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="182" y="717" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hqy1qkleqE4f_aJoNf-f-48" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="201" y="736" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hqy1qkleqE4f_aJoNf-f-50" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="220" y="717" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="NebWJtjN_IMYLuVvaxee-1" parent="1" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/databases/Virtual_Clusters.svg;" value="Azure SQL Database (PaaS) FAILOVER GROUP&lt;br&gt;HA-Failover intra-region: automatic&lt;br&gt;Cross-region DR: automatic (Failover group)&lt;br&gt;RPO = seconds&lt;br&gt;RTO = minutes&lt;br&gt;connString:sqldb-fog.database.windows.net" vertex="1">
+          <mxGeometry height="40" width="41.25" x="414.26" y="585" as="geometry" />
+        </mxCell>
+        <mxCell id="NebWJtjN_IMYLuVvaxee-12" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="290.9000000000001" y="811" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="UZUvFCjk0S72Gqz5m2nO-1" parent="1" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/app_services/App_Services.svg;" value="Client/App" vertex="1">
+          <mxGeometry height="64" width="64" x="402.89" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="UZUvFCjk0S72Gqz5m2nO-38" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="285" width="280" x="600" y="765" as="geometry" />
+        </mxCell>
+        <mxCell id="UZUvFCjk0S72Gqz5m2nO-40" parent="1" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/networking/Virtual_Networks.svg;" value="East US - Secondary Region (DR)" vertex="1">
+          <mxGeometry height="20" width="33.5" x="727.25" y="990" as="geometry" />
+        </mxCell>
+        <mxCell id="UZUvFCjk0S72Gqz5m2nO-63" edge="1" parent="1" source="UZUvFCjk0S72Gqz5m2nO-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.479;entryY=0.075;entryDx=0;entryDy=0;entryPerimeter=0;" target="NebWJtjN_IMYLuVvaxee-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cn2QgUoSajOXAjX1I2ST-19" edge="1" parent="1" source="cn2QgUoSajOXAjX1I2ST-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1.024;entryY=0.165;entryDx=0;entryDy=0;entryPerimeter=0;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="149.14999999999964" y="1074.80055" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="HL3scC-EMn6qaeURWS98-1" parent="1" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/databases/SQL_Database.svg;" value="&lt;div&gt;Azure SQL Database (Primary)&lt;/div&gt;&lt;div&gt;- Business Critical tier&amp;nbsp;&lt;/div&gt;&lt;div&gt;- SSD (platform managed)&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;-Automatic failover&lt;br&gt;-HA built in (multiple replicas)&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;-RO replicas enabled&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="64" width="48" x="210" y="800" as="geometry" />
+        </mxCell>
+        <mxCell id="HL3scC-EMn6qaeURWS98-2" parent="1" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/databases/SQL_Database.svg;" value="&lt;div&gt;Azure SQL Database (Secondary)&lt;/div&gt;&lt;div&gt;- Business Critical tier&lt;br&gt;- SSD (platform managed)&lt;/div&gt;&lt;div&gt;- Read-only replica&lt;/div&gt;&lt;div&gt;- Used for DR&lt;/div&gt;&lt;div&gt;- RO traffic optional via RO endpoint failover group&lt;/div&gt;" vertex="1">
+          <mxGeometry height="64" width="48" x="720" y="800" as="geometry" />
+        </mxCell>
+        <mxCell id="HL3scC-EMn6qaeURWS98-3" edge="1" parent="1" source="NebWJtjN_IMYLuVvaxee-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.423;entryY=0.03;entryDx=0;entryDy=0;entryPerimeter=0;" target="HL3scC-EMn6qaeURWS98-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="HL3scC-EMn6qaeURWS98-4" edge="1" parent="1" source="NebWJtjN_IMYLuVvaxee-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.536;entryY=0.009;entryDx=0;entryDy=0;entryPerimeter=0;" target="UZUvFCjk0S72Gqz5m2nO-38">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="HL3scC-EMn6qaeURWS98-5" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;FAILOVER GROUP&lt;/font&gt;" vertex="1">
+          <mxGeometry height="45" width="90" x="820" y="580" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
