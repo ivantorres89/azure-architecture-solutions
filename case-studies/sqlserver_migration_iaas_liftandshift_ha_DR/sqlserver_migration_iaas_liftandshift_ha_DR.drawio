@@ -22,27 +22,27 @@
         <mxCell id="hqy1qkleqE4f_aJoNf-f-2" parent="1" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/networking/Virtual_Networks.svg;" value="West US (PRIMARY REGION)&lt;br&gt;VNET1" vertex="1">
           <mxGeometry height="30" width="50.25" x="-63.250000000000014" y="530" as="geometry" />
         </mxCell>
-        <mxCell id="hqy1qkleqE4f_aJoNf-f-14" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="hqy1qkleqE4f_aJoNf-f-9" value="">
+        <mxCell id="hqy1qkleqE4f_aJoNf-f-14" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" value="">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="202" y="625" as="sourcePoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="hqy1qkleqE4f_aJoNf-f-15" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="hqy1qkleqE4f_aJoNf-f-7" value="">
+        <mxCell id="hqy1qkleqE4f_aJoNf-f-15" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" value="">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="182" y="717" as="sourcePoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="hqy1qkleqE4f_aJoNf-f-48" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="hqy1qkleqE4f_aJoNf-f-19" value="">
+        <mxCell id="hqy1qkleqE4f_aJoNf-f-48" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" value="">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="201" y="736" as="sourcePoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="hqy1qkleqE4f_aJoNf-f-50" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="hqy1qkleqE4f_aJoNf-f-24">
+        <mxCell id="hqy1qkleqE4f_aJoNf-f-50" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="220" y="717" as="sourcePoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="NebWJtjN_IMYLuVvaxee-1" parent="1" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/databases/Virtual_Clusters.svg;" value="AlwaysOn Failover Cluster Instance/FCI (Master)" vertex="1">
+        <mxCell id="NebWJtjN_IMYLuVvaxee-1" parent="1" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/databases/Virtual_Clusters.svg;" value="AlwaysOn Failover Cluster Instance/FCI (Primary)" vertex="1">
           <mxGeometry height="40" width="41.25" x="-54.250000000000014" y="625" as="geometry" />
         </mxCell>
         <mxCell id="NebWJtjN_IMYLuVvaxee-37" edge="1" parent="1" source="NebWJtjN_IMYLuVvaxee-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="NebWJtjN_IMYLuVvaxee-5" value="">
@@ -54,7 +54,7 @@
         <mxCell id="NebWJtjN_IMYLuVvaxee-2" parent="1" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/databases/Azure_SQL_VM.svg;" value="VM1 (Active Node)" vertex="1">
           <mxGeometry height="41" width="43.73" x="-136.43" y="810" as="geometry" />
         </mxCell>
-        <mxCell id="NebWJtjN_IMYLuVvaxee-12" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="NebWJtjN_IMYLuVvaxee-7" value="">
+        <mxCell id="NebWJtjN_IMYLuVvaxee-12" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" value="">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="290.9000000000001" y="811" as="sourcePoint" />
           </mxGeometry>
@@ -116,7 +116,7 @@
         <mxCell id="NebWJtjN_IMYLuVvaxee-94" parent="1" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/networking/Virtual_Networks.svg;" value="&lt;div&gt;East US (Secondary/DR REGION)&lt;/div&gt;&lt;div&gt;VNET1&lt;/div&gt;" vertex="1">
           <mxGeometry height="30" width="50.25" x="586.75" y="530" as="geometry" />
         </mxCell>
-        <mxCell id="NebWJtjN_IMYLuVvaxee-95" parent="1" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/databases/Virtual_Clusters.svg;" value="AlwaysOn Failover Cluster Instance/FCI (Master)" vertex="1">
+        <mxCell id="NebWJtjN_IMYLuVvaxee-95" parent="1" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/databases/Virtual_Clusters.svg;" value="AlwaysOn Failover Cluster Instance/FCI (Secondary)" vertex="1">
           <mxGeometry height="40" width="41.25" x="595.75" y="625" as="geometry" />
         </mxCell>
         <mxCell id="NebWJtjN_IMYLuVvaxee-96" edge="1" parent="1" source="NebWJtjN_IMYLuVvaxee-98" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="NebWJtjN_IMYLuVvaxee-99" value="">
@@ -179,6 +179,33 @@
         <mxCell id="NebWJtjN_IMYLuVvaxee-116" connectable="0" parent="NebWJtjN_IMYLuVvaxee-115" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Backup by AzureBackup&lt;br&gt;Trade-off: this could take time &amp;amp; RPO &amp;gt; 0" vertex="1">
           <mxGeometry relative="1" x="-0.2211" y="3" as="geometry">
             <mxPoint x="37" y="5" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="b_LgNhSUVhv-yS1V4o6g-4" edge="1" parent="1" source="b_LgNhSUVhv-yS1V4o6g-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.325;exitY=0.05;exitDx=0;exitDy=0;exitPerimeter=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="283" y="420" />
+              <mxPoint x="-90" y="420" />
+              <mxPoint x="-90" y="625" />
+            </Array>
+            <mxPoint x="221.25" y="280" as="sourcePoint" />
+            <mxPoint x="-63.25" y="625" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="b_LgNhSUVhv-yS1V4o6g-5" connectable="0" parent="b_LgNhSUVhv-yS1V4o6g-4" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="&lt;span style=&quot;font-size: 12px;&quot;&gt;connString:sqlfci-1-fog.database.windows.net&lt;/span&gt;" vertex="1">
+          <mxGeometry relative="1" x="-0.2979" y="2" as="geometry">
+            <mxPoint x="1" y="-2" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="b_LgNhSUVhv-yS1V4o6g-1" parent="1" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/app_services/App_Services.svg;" value="Client" vertex="1">
+          <mxGeometry height="40" width="40" x="270" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="b_LgNhSUVhv-yS1V4o6g-6" edge="1" parent="1" source="b_LgNhSUVhv-yS1V4o6g-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.325;entryDx=0;entryDy=0;entryPerimeter=0;" target="NebWJtjN_IMYLuVvaxee-95">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="b_LgNhSUVhv-yS1V4o6g-7" connectable="0" parent="b_LgNhSUVhv-yS1V4o6g-6" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="&lt;span style=&quot;font-size: 12px;&quot;&gt;connString:sqlfci-2-fog.database.windows.net&lt;/span&gt;" vertex="1">
+          <mxGeometry relative="1" x="-0.527" as="geometry">
+            <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
       </root>
