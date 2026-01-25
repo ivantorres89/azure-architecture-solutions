@@ -1,6 +1,6 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.3.0 Chrome/140.0.7339.249 Electron/38.7.2 Safari/537.36" version="29.3.0">
   <diagram name="Page-1" id="V0MmyuDpE63pXciobZnX">
-    <mxGraphModel dx="1678" dy="1131" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1426" dy="961" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -43,8 +43,8 @@
         <mxCell id="RMAeVSShHTEY-Qpviwvw-2" parent="1" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/databases/Cache_Redis.svg;" value="Redis backplane&lt;br&gt;(Acts as Session registry among pods)&lt;br&gt;TTL: 30min" vertex="1">
           <mxGeometry height="52" width="64" x="1040" y="790" as="geometry" />
         </mxCell>
-        <mxCell id="RMAeVSShHTEY-Qpviwvw-3" parent="1" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/app_services/API_Management_Services.svg;" value="APIM - JWT validated&lt;br&gt;Gets UserId from JWT and forwards to AKS" vertex="1">
-          <mxGeometry height="40" width="43.33" x="250" y="540" as="geometry" />
+        <mxCell id="RMAeVSShHTEY-Qpviwvw-3" parent="1" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/app_services/API_Management_Services.svg;" value="Azure APIManager- Public Perimeter security:&lt;br&gt;JWT authentication valid (issuer, audience)&lt;br&gt;API Governance/Rate limiting/quotas/Traffic protection&lt;br&gt;K8S cluster does not process invalid traffic&amp;nbsp;&lt;br&gt;Gets UserId from JWT and forwards to K8S&lt;br&gt;&amp;nbsp;/api/* -&amp;gt; K8S Ingress" vertex="1">
+          <mxGeometry height="40" width="43.33" x="260" y="474" as="geometry" />
         </mxCell>
         <mxCell id="RMAeVSShHTEY-Qpviwvw-4" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.7;entryDx=0;entryDy=0;entryPerimeter=0;" target="RMAeVSShHTEY-Qpviwvw-3">
           <mxGeometry relative="1" as="geometry">
@@ -56,7 +56,7 @@
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="RMAeVSShHTEY-Qpviwvw-5" parent="1" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/compute/Kubernetes_Services.svg;" value="AKS Cluster prod-zone1&lt;br&gt;HPA&lt;br&gt;Virtual nodes&lt;br&gt;Min order accepted pods:2&lt;br&gt;Min order-process pods: 3&lt;br&gt;Min order notification pod:2" vertex="1">
+        <mxCell id="RMAeVSShHTEY-Qpviwvw-5" parent="1" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/compute/Kubernetes_Services.svg;" value="&lt;font style=&quot;font-size: 11px;&quot;&gt;AKS (K8S) Cluster prod-zone1&lt;br&gt;AKS Cluster (managed node pools)&lt;br&gt;Min order accepted pods:2&lt;br&gt;Min order-process pods: 3&lt;br&gt;Min order notification pod:2&lt;/font&gt;" vertex="1">
           <mxGeometry height="60" width="68" x="510" y="220" as="geometry" />
         </mxCell>
         <mxCell id="RMAeVSShHTEY-Qpviwvw-6" parent="1" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/general/Browser.svg;" value="ClientApp/SPA" vertex="1">
@@ -70,7 +70,7 @@
             <mxPoint x="381" y="565" as="sourcePoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="RMAeVSShHTEY-Qpviwvw-15" parent="1" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/other/Local_Network_Gateways.svg;" value="Ingress&lt;br&gt;controller (NGINX)" vertex="1">
+        <mxCell id="RMAeVSShHTEY-Qpviwvw-15" parent="1" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/other/Local_Network_Gateways.svg;" value="Ingress&lt;br&gt;controller (NGINX)&lt;br&gt;- Routing L7 HTTPS" vertex="1">
           <mxGeometry height="44" width="44" x="534" y="430" as="geometry" />
         </mxCell>
         <mxCell id="RMAeVSShHTEY-Qpviwvw-29" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;">

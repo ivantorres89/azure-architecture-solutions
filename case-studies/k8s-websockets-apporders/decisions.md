@@ -1,135 +1,164 @@
-# Architecture & Design Decisions
+# Architecture and Design Decisions
 
 ---
 
-## 1. Fully Asynchronous Architecture
+## Asynchronous Processing Model
 
 ### Decision
-All order processing is fully asynchronous.
+All order processing is performed asynchronously.
 
 ### Rationale
 - Prevents frontend blocking
 - Absorbs traffic spikes
-- Enables independent scaling of ingestion and processing
-- Aligns with event-driven architecture best practices
+- Decouples ingestion from processing
+- Enables independent scaling of system components
+
+This aligns with event-driven architecture patterns used in high-throughput systems.
 
 ---
 
-## 2. Separation of CorrelationId and OrderId
+## CorrelationId vs OrderId
 
 ### Decision
 Use two distinct identifiers:
-- `CorrelationId` for asynchronous workflow tracking
-- `OrderId` as the database-generated business identifier
+- CorrelationId for technical workflow tracking
+- OrderId as the database-generated business identifier
 
 ### Rationale
 - Orders must be accepted before database interaction
-- Correlation is required across queues, Redis, and WebSockets
-- Database identity should remain a persistence concern
-- Improves traceability and observability
+- Asynchronous workflows require correlation across queues, Redis, and WebSockets
+- Business identity remains a persistence concern
+- Improves observability and traceability across distributed components
 
 ---
 
-## 3. Azure Service Bus Queues (FIFO)
+## API Gateway Selection (Azure API Management)
 
 ### Decision
-Use Azure Service Bus Queues with FIFO semantics.
+Use Azure API Management as an **edge API gateway** in front of the Kubernetes cluster.
 
 ### Rationale
-- Reliable message delivery
-- Built-in retries and dead-letter queues
-- Session support for FIFO ordering
-- Better suited for transactional workflows than Event Grid
+APIM is used as a **perimeter and governance layer**, not as a business gateway.
+
+Its responsibilities are limited to:
+- JWT authentication at the edge
+- Rate limiting and quotas
+- Traffic shaping and backend protection
+- Acting as a stable public entry point
+
+All business authorization and routing logic remains inside the Kubernetes cluster.
 
 ---
 
-## 4. Kubernetes as the Application Runtime
+## Integration with External Identity Providers
+
+### Decision
+Decouple identity management from backend services and integrate authentication at the API gateway layer.
+
+### Rationale
+Azure API Management is **identity-provider agnostic** and supports validation of JWTs issued by any OAuth 2.0 / OpenID Connect–compliant provider.
+
+This allows the system to integrate with:
+- Cloud-native IdPs
+- Corporate identity platforms
+- Hybrid or multi-cloud identity solutions
+
+### Example Identity Providers
+Typical examples of compatible IdPs include:
+- Azure Active Directory / Entra ID
+- Keycloak
+- Auth0
+- Okta
+
+In all cases:
+- The IdP issues JWT access tokens
+- APIM validates token authenticity, issuer, and audience
+- User identity claims are forwarded to backend services
+
+The Identity Provider itself remains outside the scope of this architecture.
+
+---
+
+## Application Runtime
 
 ### Decision
 Deploy all backend services on Azure Kubernetes Service.
 
 ### Rationale
-- Horizontal scalability
-- Stateless service model
-- Clear separation of responsibilities
-- Industry-standard orchestration platform
+- Enables stateless service design
+- Supports horizontal scaling
+- Provides workload isolation
+- Aligns with modern cloud-native practices
 
-### Scope Note
-Only a single AKS cluster is shown in the diagram for clarity.
-The architecture supports:
-- Zonal node pools
-- Multi-cluster active-active setups
-These are intentionally omitted from the diagram to avoid unnecessary complexity.
+Only a single cluster is shown for conceptual clarity.  
+The architecture supports zonal and multi-cluster deployments without requiring logical changes.
 
 ---
 
-## 5. Stateless Services and Externalized State
+## State Management
 
 ### Decision
 All services are stateless.
 
 ### Rationale
-- Enables horizontal scaling
-- Simplifies deployments and rollbacks
+- Simplifies scaling and deployments
 - Improves fault tolerance
+- Reduces coupling between services
 
 State is externalized to:
 - Azure SQL Database (business state)
-- Redis (correlation and session state)
+- Redis (session and correlation state)
 
 ---
 
-## 6. Redis as a Correlation and Session Registry
+## Redis Usage
 
 ### Decision
-Use Redis as a short-lived registry mapping `CorrelationId` to WebSocket connection metadata.
+Use Redis as a short-lived correlation and session registry.
 
 ### Rationale
-- Enables real-time notification in async workflows
-- Avoids sticky sessions
-- Supports horizontal scaling of WebSocket servers
-- TTL ensures automatic cleanup
+- Enables real-time notification in asynchronous workflows
+- Avoids sticky sessions for WebSocket connections
+- Supports horizontal scaling of notification services
+- TTL-based cleanup prevents stale state accumulation
 
-Redis is **not** used as:
-- A message broker
-- A source of truth
-- A business data store
+Redis is not used as a message broker or system of record.
 
 ---
 
-## 7. Real-Time Communication via WebSockets
+## Messaging Strategy
 
 ### Decision
-Implement a dedicated WebSocket service for real-time notifications.
+Use Azure Service Bus queues with FIFO semantics.
 
 ### Rationale
-- Clear separation of concerns
-- Decouples order processing from user communication
-- Improves scalability and resilience
+- Reliable delivery with retry support
+- Built-in dead-letter queues for poison messages
+- Well suited for transactional, ordered workflows
+
+Topics and fan-out are intentionally excluded to keep the workflow simple and predictable.
 
 ---
 
-## 8. Database Choice: Azure SQL Database – Business Critical
+## Failure Handling
 
 ### Decision
-Use Azure SQL Database Business Critical tier.
+Adopt at-least-once delivery with defensive consumers.
 
 ### Rationale
-- Predictable low latency
-- High IOPS for sustained OLTP workloads
-- Built-in high availability
-- Strong consistency guarantees
+- Consumers are idempotent
+- Transient failures are retried automatically
+- Poison messages are isolated via dead-letter queues
 
-Cost optimization is intentionally secondary to reliability.
-
----
-
-## 9. Failure Handling and Reliability
-
-- At-least-once message delivery
-- Idempotent consumers
-- Dead-letter queues for poison messages
-- Correlation-based traceability
+Dead-letter queues are treated as an operational concern and monitored separately.
 
 ---
 
+## Design Philosophy
+
+This architecture prioritizes:
+- Clear responsibility boundaries
+- Predictable behavior under load
+- Operational safety over theoretical optimization
+
+Capacity planning and resource sizing are intentionally deferred to operational metrics rather than upfront assumptions.

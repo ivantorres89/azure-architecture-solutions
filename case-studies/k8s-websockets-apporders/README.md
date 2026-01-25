@@ -1,146 +1,165 @@
 # Contoso Order Processing Platform  
-## Cloud-Native Asynchronous Architecture (Greenfield Case Study)
+## Cloud-Native Asynchronous Architecture
 
 ---
 
-## 1. Overview
+## Overview
 
-Contoso wants to build a **cloud-native, highly scalable order processing platform** designed for **high-throughput OLTP workloads** and **real-time user feedback**, while maintaining strong decoupling between frontend and backend systems.
+This repository presents a **cloud-native, asynchronous order processing architecture** designed for **high-throughput transactional workloads** and **real-time user notifications**, deployed on Microsoft Azure.
 
-This project is a **greenfield reference architecture**, intentionally designed to reflect **real-world enterprise patterns** rather than simplified demos.
+The architecture reflects **real-world enterprise design patterns**, focusing on:
+- Event-driven processing
+- Clear separation of concerns
+- Scalability and resilience
+- Secure exposure of backend services
 
-The system is:
-- Fully asynchronous
-- Event-driven
-- Horizontally scalable
-- Designed for high availability
-- Built using Azure managed services and Kubernetes
-
-This case study is intended to be used as:
-- Technical portfolio material
-- Architecture discussion artifact in interviews
-- Reference design for cloud-native systems
+This repository intentionally focuses on **architecture and design decisions**, not on application source code or implementation details.
 
 ---
 
-## 2. Functional Requirements
+## Problem Context
+
+Contoso needs to build a backend platform capable of handling a large volume of customer orders while ensuring:
+
+- A responsive frontend experience
+- Protection of backend systems from traffic spikes
+- Reliable, ordered, and idempotent processing
+- Real-time feedback to end users once processing completes
+
+The system must remain stable under load and tolerate retries, failures, and partial outages without impacting the user experience.
+
+---
+
+## Functional Requirements
 
 ### Order Submission
-- Users submit orders via a **Single Page Application (SPA)**.
-- Order submission must be **non-blocking**.
-- The frontend must never wait for backend processing completion.
+- Orders are submitted via a Single Page Application (SPA).
+- Submission is non-blocking.
+- The frontend does not wait for backend processing to complete.
 
 ### Order Processing
 - Orders are processed asynchronously.
 - FIFO semantics are required.
-- The system must tolerate retries and duplicate message delivery.
+- Duplicate message delivery must be handled safely.
 
 ### User Notification
-- Users must be notified **in real time** when:
-  - An order has completed processing.
-- Notifications are delivered via **WebSockets**.
+- Users receive a real-time notification when their order processing completes.
+- Notifications are delivered via WebSockets.
 
 ---
 
-## 3. Non-Functional Requirements
+## Non-Functional Requirements
 
-- High availability and fault tolerance
 - Horizontal scalability
+- Fault tolerance
 - Loose coupling between components
-- Event-driven communication
 - Strong consistency for transactional data
-- Secure by default
-- Clear separation of responsibilities
-- Production-ready design (not demo-oriented)
+- Predictable performance under sustained load
+- Secure communication by default
 
 ---
 
-## 4. High-Level Architecture
+## Identity and Authentication (Out of Scope)
 
-### Conceptual Flow
+User authentication and token issuance are performed by an **external Identity Provider (IdP)**.
+
+The architecture assumes:
+- OAuth 2.0 / OpenID Connect–compliant access tokens
+- JWT-based authentication
+- Standard claims (e.g. user identity, scopes, issuer)
+
+The **Identity Provider itself is intentionally out of scope** for this case study.  
+The system is designed to remain **agnostic to the specific IdP implementation**, allowing integration with any standards-compliant provider.
+
+---
+
+## Architectural Overview
+
+The system follows an **event-driven, asynchronous architecture**:
 
 1. The SPA establishes a WebSocket connection with the backend.
 2. The user submits an order via HTTP.
-3. A **CorrelationId** is generated at the API boundary.
-4. The request is published to a FIFO queue.
+3. The API boundary generates a **CorrelationId**.
+4. The order request is published to a FIFO message queue.
 5. Backend processors consume and process the order asynchronously.
-6. The order is persisted in the database, generating a database-native `OrderId`.
-7. An event signaling completion is published.
+6. The order is persisted in the database, generating the business `OrderId`.
+7. An order completion event is published.
 8. A notification service resolves the WebSocket session and pushes a real-time update to the user.
 
 ---
 
-## 5. Identity and Correlation Model
+## Identity and Correlation Model
 
-This architecture intentionally separates **technical correlation** from **business identity**:
+Two identifiers are intentionally used:
 
-| Concept | Purpose | Generated By |
-|------|--------|-------------|
-| CorrelationId | Async workflow tracking | Order Accept API |
-| OrderId | Business identifier | SQL Database |
+| Identifier | Purpose | Generated By |
+|----------|--------|--------------|
+| CorrelationId | Technical workflow correlation | Order Accept API |
+| OrderId | Business identity | SQL Database |
 
-This separation enables:
-- True asynchronous processing
-- Database independence at ingestion time
-- Clean traceability across distributed components
+This separation allows orders to be accepted and tracked **before database interaction**, while keeping business identity generation within the persistence layer.
 
 ---
 
-## 6. Core Components
+## Core Components
 
-### Frontend
-- SPA (implementation out of scope)
-- Maintains a persistent WebSocket connection
+### Client Application
+- SPA communicating via HTTP and WebSockets.
+- Maintains a persistent WebSocket connection for notifications.
 
-### API Gateway
-- Azure API Management
-- Validates JWT tokens
-- Extracts user identity from claims
-- Forwards authenticated requests to AKS
-- Contains **no business logic**
+### API Gateway (Edge Layer)
+- Azure API Management.
+- Acts as a **public perimeter gateway**.
+- Responsibilities:
+  - JWT validation
+  - Rate limiting and quotas
+  - Traffic protection
+  - Forwarding authenticated requests to the Kubernetes cluster
+- Contains no business or domain logic.
 
-### Kubernetes (AKS)
+### Application Runtime (AKS)
 
-A single AKS cluster is shown in the diagram for **conceptual clarity**.
+All backend workloads run on **Azure Kubernetes Service**:
 
-> **Note:**  
-> In a production-grade deployment, this architecture supports **zonal or multi-cluster setups**.  
-> Cluster replication is intentionally omitted from the diagram to avoid visual complexity and to focus on logical architecture.
-
-Workloads deployed in AKS:
 - Order Accept API
-- Order Processor
-- Real-Time Notification Service (WebSocket server)
+- Order Processing workers
+- Real-time Notification service (WebSocket servers)
 
-All services are stateless and horizontally scalable.
+Services are stateless and scale horizontally using Kubernetes primitives.
+
+A single AKS cluster is shown in the diagram for clarity.  
+Zonal or multi-cluster deployments are intentionally omitted to keep the focus on logical architecture rather than physical topology.
 
 ### Messaging
-- Azure Service Bus Queues
-- FIFO semantics
-- At-least-once delivery
-- Built-in retries and dead-lettering
+- Azure Service Bus queues with FIFO semantics.
+- At-least-once delivery.
+- Built-in retry and dead-letter support.
 
 ### Data Storage
-- Azure SQL Database (Business Critical tier)
-- Database-generated primary keys
-- Strong consistency guarantees
+- Azure SQL Database (Business Critical tier).
+- Strong consistency guarantees.
+- Database-generated primary keys.
 
 ### Redis
-- Azure Cache for Redis
-- Acts as a **short-lived correlation and session registry**
-- Maps `CorrelationId` to WebSocket connection metadata
-- TTL-based cleanup
+- Azure Cache for Redis.
+- Used as a **short-lived session and correlation registry**.
+- Maps CorrelationId to WebSocket connection metadata.
+- TTL-based cleanup.
+
+Redis is not used as a message broker or system of record.
 
 ---
 
-## 7. Real-Time Notification Design
+## Scope and Intent
 
-- WebSocket connections are terminated by a dedicated notification service.
-- Redis is used to resolve:
-  - Which user
-  - Which connection
-- Redis does **not** push messages.
-- WebSocket messages are sent directly from the notification service to the SPA.
+This architecture focuses on **system behavior and responsibility boundaries**.
+
+Details such as:
+- Infrastructure sizing
+- Node-level configuration
+- CI/CD pipelines
+- Infrastructure as Code
+
+are considered out of scope unless they materially affect architectural decisions.
 
 ---
-
