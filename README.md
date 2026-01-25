@@ -1,76 +1,73 @@
 # Azure Architecture Solutions
 
-This repository is a **professional Azure architecture portfolio** showcasing solution designs inspired by **real-world enterprise scenarios**.
+This repository contains a curated collection of **Azure architecture designs** based on **real-world enterprise scenarios**.
 
-The goal is to demonstrate **architectural thinking, design decisions, and trade-offs** when building scalable, secure, and highly available systems on Microsoft Azure — aligned with **AZ-305 (Azure Solutions Architect Expert)**.
+It reflects how I approach **system design, trade-offs, and architectural decisions** when building scalable, secure, and resilient platforms on Microsoft Azure.
 
-This repository focuses on **architecture and design**, not on application source code.
+The focus is on **architecture and reasoning**, not on application source code.
 
 ---
 
-## 🎯 Purpose & Scope
+## 🎯 Purpose
 
-This portfolio is intended to:
+This repository serves as a **professional architecture portfolio**.
 
-- Demonstrate Azure **Solutions Architect–level** design skills
-- Apply Azure best practices around:
-  - Identity & access management
-  - Networking & connectivity
-  - Compute & scalability
-  - Data platforms & resiliency
-  - High availability & disaster recovery
-  - Migration strategies (on-premises to Azure)
-- Provide clear **design rationale** rather than just diagrams
+It captures:
+- How requirements are translated into architectural decisions
+- How scalability, availability, and resilience are addressed
+- How Azure services are combined to solve concrete problems
+- Why certain choices are made over others
+
+Rather than presenting “ideal” architectures, the emphasis is on **pragmatic, production-oriented designs**.
 
 ---
 
 ## 📁 Repository Structure
 
-The repository is organized by architectural domain.
+Architectures are organized by **problem domain or scenario**.
 
-Each scenario typically contains:
+Each case typically includes:
+- A clear problem statement and constraints
+- One or more architecture diagrams
+- Key design decisions and their rationale
+- Trade-offs and alternatives that were intentionally not chosen
 
-- An **architecture diagram**
-- **Context and requirements**
-- **Key design decisions**
-- **Trade-offs and alternatives considered**
+The goal is to make the **decision-making process explicit**, not just the final diagram.
 
 ---
 
-## 📐 Diagrams & Scenarios
+## 📐 Architectures & Scenarios
 
-All architectures are:
-
+All scenarios are:
 - **Anonymized**
-- **Vendor-agnostic where possible**
 - **Inspired by real production experience**
-- Created for **educational and portfolio purposes**
+- Designed with **enterprise constraints in mind**
+- Focused on cloud-native and hybrid Azure environments
 
-They do **not** represent any specific customer or internal system.
+They do not represent any specific customer, company, or internal system.
 
 ---
 
-## ⚠️ Disclaimer
+## 🧭 Scope & Intent
 
-This repository is intended for **portfolio and educational use only**.
+This repository is intentionally:
+- **Architecture-focused**
+- **Implementation-agnostic**
+- **Cloud-provider aware**, but not tied to a single product feature set
 
-Diagrams, designs, and documentation:
-
-- Must **not be reused, redistributed, or republished**
-- Are **not production-ready blueprints**
-- Do **not include confidential or proprietary information**
+Details such as CI/CD pipelines, infrastructure-as-code, and application code are considered **out of scope**, unless they are directly relevant to an architectural decision.
 
 ---
 
 ## 🧠 Author
 
-Senior Backend & Cloud Engineer with **12+ years of experience** in .NET and Azure.
+Senior Backend & Cloud Engineer with **12+ years of experience** designing and building distributed systems on .NET and Microsoft Azure.
 
-**Microsoft Azure Cloud Solutions Architect Expert (AZ-305)**  
-Additional Azure certifications:
+**Microsoft Certified: Azure Solutions Architect Expert (AZ-305)**
 
-- Microsoft Certified: Azure Developer Associate (AZ-204)
-- Microsoft Certified: Azure Administrator Associate (AZ-104)
-- Microsoft Certified: Azure Fundamentals (AZ-900)
-- Microsoft Certified: Data Fundamentals (DP-900)
-- Microsoft Certified: AI Fundamentals (AI-900)
+Additional certifications:
+- Azure Developer Associate (AZ-204)
+- Azure Administrator Associate (AZ-104)
+- Azure Fundamentals (AZ-900)
+- Data Fundamentals (DP-900)
+- AI Fundamentals (AI-900)
