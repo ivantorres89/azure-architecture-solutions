@@ -25,6 +25,7 @@ Contoso needs to build a backend platform capable of handling a large volume of 
 - Protection of backend systems from traffic spikes
 - Reliable, ordered, and idempotent processing
 - Real-time feedback to end users once processing completes
+- The system must allow users to retrieve the current order status at any time, regardless of browser tab, window, or WebSocket reconnection.
 
 The system must remain stable under load and tolerate retries, failures, and partial outages without impacting the user experience.
 
@@ -45,6 +46,7 @@ The system must remain stable under load and tolerate retries, failures, and par
 ### User Notification
 - Users receive a real-time notification when their order processing completes.
 - Notifications are delivered via WebSockets.
+- The service uses SignalR (self-hosted) for WebSocket management. Azure SignalR Service (PaaS) is intentionally not used to keep the architecture explicit and portable.
 
 ---
 

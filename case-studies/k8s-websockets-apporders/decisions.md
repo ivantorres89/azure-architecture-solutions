@@ -1,7 +1,5 @@
 # Architecture and Design Decisions
 
----
-
 ## Asynchronous Processing Model
 
 ### Decision
@@ -50,35 +48,6 @@ All business authorization and routing logic remains inside the Kubernetes clust
 
 ---
 
-## Integration with External Identity Providers
-
-### Decision
-Decouple identity management from backend services and integrate authentication at the API gateway layer.
-
-### Rationale
-Azure API Management is **identity-provider agnostic** and supports validation of JWTs issued by any OAuth 2.0 / OpenID Connect–compliant provider.
-
-This allows the system to integrate with:
-- Cloud-native IdPs
-- Corporate identity platforms
-- Hybrid or multi-cloud identity solutions
-
-### Example Identity Providers
-Typical examples of compatible IdPs include:
-- Azure Active Directory / Entra ID
-- Keycloak
-- Auth0
-- Okta
-
-In all cases:
-- The IdP issues JWT access tokens
-- APIM validates token authenticity, issuer, and audience
-- User identity claims are forwarded to backend services
-
-The Identity Provider itself remains outside the scope of this architecture.
-
----
-
 ## Application Runtime
 
 ### Decision
@@ -92,6 +61,22 @@ Deploy all backend services on Azure Kubernetes Service.
 
 Only a single cluster is shown for conceptual clarity.  
 The architecture supports zonal and multi-cluster deployments without requiring logical changes.
+
+---
+
+## Order Workflow State Management
+
+### Decision
+Store short-lived order workflow state in Redis (ACCEPTED / PROCESSING / COMPLETED).
+
+### Rationale
+- WebSocket connections are transient by nature.
+- Users may open multiple browser tabs or reconnect at any time.
+- Order state must be consistently observable across all application instances.
+- Redis provides low-latency, shared state without introducing coupling between services.
+
+Redis is used only for **transient workflow state**, not as a system of record.
+The authoritative business state remains in the SQL database.
 
 ---
 
@@ -151,6 +136,35 @@ Adopt at-least-once delivery with defensive consumers.
 - Poison messages are isolated via dead-letter queues
 
 Dead-letter queues are treated as an operational concern and monitored separately.
+
+---
+
+## Integration with External Identity Providers
+
+### Decision
+Decouple identity management from backend services and integrate authentication at the API gateway layer.
+
+### Rationale
+Azure API Management is **identity-provider agnostic** and supports validation of JWTs issued by any OAuth 2.0 / OpenID Connect–compliant provider.
+
+This allows the system to integrate with:
+- Cloud-native IdPs
+- Corporate identity platforms
+- Hybrid or multi-cloud identity solutions
+
+### Example Identity Providers
+Typical examples of compatible IdPs include:
+- Azure Active Directory / Entra ID
+- Keycloak
+- Auth0
+- Okta
+
+In all cases:
+- The IdP issues JWT access tokens
+- APIM validates token authenticity, issuer, and audience
+- User identity claims are forwarded to backend services
+
+The Identity Provider itself remains outside the scope of this architecture.
 
 ---
 
