@@ -1,131 +1,109 @@
-# Architectural Decisions & Trade-offs
+# Architecture Decision Records (ADRs)
 
-This document outlines the key architectural decisions taken to design
-a highly available and resilient **Azure SQL Managed Instance (PaaS)** solution.
+This document captures the **final architecture decisions** for the **SQL Server migration to Azure SQL Database (PaaS)** case study, based on `README.md` and the target diagram.
 
----
-
-## 1. Use of Azure SQL Managed Instance (MI)
-
-**Decision**  
-Use **Azure SQL Managed Instance** as the database platform.
-
-**Rationale**
-- High compatibility with SQL Server
-- Supports CLR, SQL Agent, stored procedures
-- Eliminates OS and VM management
-- Fully managed patching and backups
-
-**Outcome**
-- Minimal refactoring effort
-- Reduced operational burden
-- Faster migration compared to Azure SQL Database (single DB)
+Format: **Context → Decision → Consequences**.
 
 ---
 
-## 2. Business Critical Service Tier
+## ADR-001 — Choose Azure SQL Database for single-database, cloud-native workloads
 
-**Decision**  
-Deploy Managed Instance using the **Business Critical** tier.
+**Status:** Accepted
 
-**Rationale**
-- SSD-backed local storage
-- Optimized for OLTP workloads
-- Built-in read-only replicas
-- Lower latency compared to General Purpose
+### Context
+The workload fits a **single-database** model and does not require instance-level features such as SQL Agent jobs, CLR, or cross-database queries.
 
-**Benefits**
-- High transaction throughput
-- Read scale-out support
-- Better performance isolation
+### Decision
+Migrate to **Azure SQL Database** (single database) to remove VM/OS management and adopt a cloud-native database platform.
 
----
-
-## 3. High Availability Model
-
-**Decision**  
-Rely on **built-in HA provided by Azure SQL Managed Instance**.
-
-**Rationale**
-- Business Critical tier uses multiple replicas
-- Automatic failover handled by the platform
-- No clustering or load balancer configuration required
-
-**Key Advantage**
-- HA is transparent to the application
-- No manual failover logic
+### Consequences
+- Significant reduction in operational overhead (patching, backups, HA managed by the platform).
+- Some SQL Server features may need rework or replacement (by design).
+- Enables simpler scaling and modernization patterns compared to IaaS.
 
 ---
 
-## 4. Disaster Recovery via Auto-Failover Groups
+## ADR-002 — Use Business Critical tier for HA + low-latency OLTP
 
-**Decision**  
-Configure **Auto-Failover Groups** between two Azure regions.
+**Status:** Accepted
 
-**Rationale**
-- Native, managed DR mechanism
-- Asynchronous replication to secondary region
-- Automatic or manual failover supported
+### Context
+The system is mission-critical OLTP with strict latency and availability requirements.
 
-**Outcome**
-- Region-level disaster recovery
-- Predictable RTO and low RPO
-- No VM replication or storage recovery needed
+### Decision
+Deploy Azure SQL Database in the **Business Critical** tier and enable **zone redundancy** where available.
 
----
-
-## 5. Why SQL Server IaaS Was Rejected
-
-**Rejected Option**  
-SQL Server on Azure Virtual Machines (IaaS)
-
-**Reasons for Rejection**
-- Requires OS and patch management
-- HA and DR must be designed and maintained manually
-- Higher operational complexity
-- Requires SQL clustering or Availability Groups
+### Consequences
+- Built-in high availability with automatic failover.
+- Higher cost than General Purpose; accepted for performance/availability.
+- Service tier limits and cost governance must be actively managed.
 
 ---
 
-## 6. Why Failover Cluster Instance (FCI) Was Rejected
+## ADR-003 — Cross-region DR via Failover Group
 
-**Rejected Option**  
-SQL Server Always On Failover Cluster Instance
+**Status:** Accepted
 
-**Reasons for Rejection**
-- Requires shared storage
-- No native cross-region failover
-- Complex DR procedures
-- Not cloud-optimized
+### Context
+Regional outage resilience is required with low RTO/RPO, and the solution must remain managed and repeatable.
 
----
+### Decision
+Configure an **Auto-failover group** between logical servers in two regions for coordinated geo-replication and failover.
 
-## 7. Why Always On Availability Groups (AG) Were Rejected
-
-**Rejected Option**  
-SQL Server Always On Availability Groups (IaaS)
-
-**Reasons for Rejection**
-- Requires SQL Server Enterprise licensing
-- Requires manual configuration and monitoring
-- Still depends on VM-level management
-- Higher cost and operational effort compared to PaaS
+### Consequences
+- Stable read-write endpoint for the application during regional failover.
+- Replication is asynchronous; a small data-loss window may exist depending on conditions.
+- Requires DR drills, monitoring, and a clear failover decision process.
 
 ---
 
-## Final Assessment
+## ADR-004 — Use built-in read scale-out for reporting workloads
 
-Azure SQL Managed Instance with Business Critical tier provides:
+**Status:** Accepted
 
-- Built-in HA
-- Managed DR
-- High OLTP performance
-- Reduced operational risk
-- Cloud-native resilience
+### Context
+Read-heavy reporting can impact write latency on primary OLTP workloads.
 
-In exchange for:
-- Less granular infrastructure control
-- Platform-imposed limits compared to full IaaS
+### Decision
+Use **read scale-out** (read-only replicas) for reporting/analytics traffic, keeping OLTP writes isolated on the primary.
 
-This design represents a **production-ready, enterprise-grade PaaS SQL architecture**
-suitable for mission-critical workloads with strict availability and performance requirements.
+### Consequences
+- Better performance isolation and predictable OLTP latency.
+- Read replicas are eventually consistent; reporting may lag slightly.
+- Requires connection routing strategy for read-only traffic.
+
+---
+
+## ADR-005 — Restrict access to private networking where required
+
+**Status:** Accepted
+
+### Context
+Enterprise security posture prefers private access patterns and reduced public exposure.
+
+### Decision
+Where network requirements apply, use **Private Endpoint** + private DNS and disable public access paths as appropriate for the environment.
+
+### Consequences
+- Reduced attack surface and better compliance alignment.
+- Adds DNS/routing operational complexity.
+- Connectivity troubleshooting requires network/DNS tooling and ownership.
+
+---
+
+## ADR-006 — Reject Azure SQL Managed Instance for this scenario
+
+**Status:** Accepted
+
+### Context
+Managed Instance is optimized for high SQL Server compatibility and instance-level features, which are not required for this workload.
+
+### Decision
+Do not use **Azure SQL Managed Instance** in this case study; prefer Azure SQL Database for simplicity and cost/performance alignment.
+
+### Consequences
+- Leaner operational model and fewer network prerequisites than MI.
+- Feature gaps are accepted because they are not needed by requirements.
+- Keeps the architecture closer to cloud-native patterns (single database, managed HA/DR).
+
+---

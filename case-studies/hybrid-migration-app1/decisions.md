@@ -1,137 +1,162 @@
-# Architectural Decisions & Rationale – App1 Migration
+# Architecture Decision Records (ADRs)
 
-This document captures the key architectural decisions made during the migration of App1 to Azure, including the reasoning behind each choice.
+This document captures the **final architecture decisions** for the **App1 hybrid migration** case study, based on the requirements and target diagram described in `README.md`.
 
----
-
-## 1. Separation of DB1 and DB2 into PaaS Databases
-
-**Decision**  
-Migrate DB1 and DB2 as **separate Azure SQL Databases** instead of a single SQL Server instance.
-
-**Rationale**
-- Databases are logically independent
-- Azure SQL Database provides:
-  - Built-in high availability
-  - Automatic patching
-  - Reduced operational overhead
-- Enables independent scaling and cost control
-
-**Trade-off**
-- Slightly higher cost compared to shared IaaS SQL Server
-- Accepted due to availability and compliance requirements
+Format: **Context → Decision → Consequences**.
 
 ---
 
-## 2. Azure SQL Business Critical Tier
+## ADR-001 — Hybrid connectivity via ExpressRoute (private peering)
 
-**Decision**  
-Use **Business Critical** tier with zone redundancy.
+**Status:** Accepted
 
-**Rationale**
-- Required **RPO = 0** and **RTO ≈ 0**
-- Automatic failover across availability zones
-- Low I/O latency due to local SSD storage
+### Context
+App1 must remain connected to on-premises systems with **predictable latency** and without exposing traffic over the public internet.
 
-**Rejected Alternatives**
-- General Purpose: insufficient availability
-- SQL on VM: higher admin effort
+### Decision
+Use **ExpressRoute** (private peering) to connect on-premises to the Azure VNet hosting App1 and its dependencies, terminating on an **ExpressRoute gateway**.
 
----
-
-## 3. Dedicated Hosts for App1
-
-**Decision**  
-Deploy App1 on **Azure Dedicated Hosts**.
-
-**Rationale**
-- Explicit requirement: no shared physical infrastructure
-- Compliance and isolation guarantees
-- Supports VM Scale Sets and Availability Zones
+### Consequences
+- Lower latency and higher reliability than internet VPN.
+- Additional circuit and gateway costs; requires network-provider coordination.
+- Network routing/DNS becomes an explicit operational concern (change control + monitoring).
 
 ---
 
-## 4. Multi-AZ Deployment with VM Scale Sets
+## ADR-002 — Compute isolation with Azure Dedicated Hosts
 
-**Decision**  
-Deploy App1 across **three Availability Zones**, each with its own VM Scale Set.
+**Status:** Accepted
 
-**Rationale**
-- Required to survive the loss of two zones
-- Enables independent fault domains
-- Supports automatic scaling and resilience
+### Context
+A hard compliance requirement mandates **no shared physical infrastructure** with other tenants.
 
----
+### Decision
+Run App1 VMs on **Azure Dedicated Hosts**, grouped per Availability Zone (host groups aligned to zones).
 
-## 5. Managed Identity for App1
-
-**Decision**  
-Use **system-assigned managed identity** for App1.
-
-**Rationale**
-- Eliminates credential management
-- Integrates natively with Azure RBAC
-- Least-privilege access model
-
-**Rejected Alternatives**
-- Service principals (manual secret rotation)
-- Shared keys (security risk)
+### Consequences
+- Strong isolation guarantees and compliance alignment.
+- Higher baseline cost and capacity planning requirements (host-level reservations/limits).
+- Scale-out is constrained by available host capacity; scaling events must be pre-planned.
 
 ---
 
-## 6. Azure Storage with Immutable Blob Policies
+## ADR-003 — Zonal VM Scale Sets for N+2 zone resilience
 
-**Decision**  
-Store application data in Azure Storage with **immutable blob policies (WORM)**.
+**Status:** Accepted
 
-**Rationale**
-- Mandatory 3-year write-once requirement
-- Meets regulatory and audit constraints
-- Azure-native compliance feature
+### Context
+App1 must survive the loss of **two Availability Zones** in the selected region.
 
----
+### Decision
+Deploy **three zonal VM Scale Sets** (one per zone), each pinned to its zone, and size for **N+2** capacity across zones.
 
-## 7. Private Access to Storage
-
-**Decision**  
-Disable public access to Azure Storage endpoints.
-
-**Rationale**
-- Prevents data exfiltration
-- Enforces access through identity and networking controls
-- Aligns with Zero Trust principles
+### Consequences
+- Resilience against zone-level failures with predictable fault domains.
+- More infrastructure to manage (multiple VMSS, per-zone capacity and patching strategy).
+- Requires careful capacity planning (minimum instances per zone, scaling policies).
 
 ---
 
-## 8. Centralized RBAC at Management Group Level
+## ADR-004 — Split DB1 and DB2 into separate Azure SQL Databases
 
-**Decision**  
-Apply RBAC roles at **management group scope**.
+**Status:** Accepted
 
-**Rationale**
-- Consistent permissions across subscriptions
-- Reduced administrative overhead
-- Clear separation of duties
+### Context
+DB1 and DB2 are logically independent and benefit from independent scaling, cost control, and blast-radius isolation.
 
----
+### Decision
+Migrate DB1 and DB2 to **two separate Azure SQL Databases** (PaaS), rather than co-hosting on a single SQL Server VM.
 
-## 9. ExpressRoute for Hybrid Connectivity
-
-**Decision**  
-Maintain ExpressRoute connectivity between on-premises and Azure.
-
-**Rationale**
-- Predictable latency
-- Traffic routed over Microsoft backbone
-- Required for enterprise-grade hybrid scenarios
+### Consequences
+- Independent scaling and operational isolation per database.
+- Cross-database operations must be handled at the application layer (no implicit instance-level coupling).
+- Cost can be slightly higher than shared IaaS, accepted for availability and reduced ops.
 
 ---
 
-## Summary
+## ADR-005 — Business Critical tier + zone redundancy for DB1/DB2
 
-The final architecture prioritizes:
-- Security and compliance over raw cost
-- Platform-managed services over self-managed infrastructure
-- Scalability and fault tolerance by design
+**Status:** Accepted
 
-These decisions align with Azure Well-Architected Framework best practices and reflect real-world enterprise constraints.
+### Context
+The workload requires **low-latency OLTP** and stringent availability targets (RPO≈0, low RTO).
+
+### Decision
+Use **Azure SQL Database – Business Critical** with **zone redundancy** in an Azure region that supports Availability Zones.
+
+### Consequences
+- Built-in HA with automatic failover across zones.
+- Higher cost than General Purpose; accepted for latency and availability.
+- Capacity planning must consider service tier limits and cost governance.
+
+---
+
+## ADR-006 — Immutable data retention using Azure Blob immutability (WORM)
+
+**Status:** Accepted
+
+### Context
+Regulatory requirements mandate **write-once, read-many (WORM)** retention for 3 years.
+
+### Decision
+Store application files in **Azure Storage (Blob)** with **immutability policies** (time-based retention) for 3 years, using dedicated containers for immutable content.
+
+### Consequences
+- Enforced retention and auditability at the platform level.
+- Deletions/overwrites are restricted; lifecycle management must be intentional.
+- Increased storage cost over time; requires retention governance (tiers, archival strategy).
+
+---
+
+## ADR-007 — Private-only access to Storage and SQL via Private Link
+
+**Status:** Accepted
+
+### Context
+The target state requires **no public endpoints** for Storage and database access.
+
+### Decision
+Disable public network access where supported and use:
+- **Private Endpoints** for Azure Storage and Azure SQL Database
+- **Private DNS zones** for name resolution inside the VNet
+
+### Consequences
+- Strong reduction of data-exfiltration surface area.
+- Requires DNS design and operations (split-horizon DNS, private zone linking).
+- Troubleshooting connectivity becomes more network/DNS-centric.
+
+---
+
+## ADR-008 — Use Managed Identity for service-to-service access
+
+**Status:** Accepted
+
+### Context
+Static credentials (service principals, keys) increase secret-handling risk and operational burden.
+
+### Decision
+Use **system-assigned Managed Identity** on the App1 VM instances to access Azure resources (Storage RBAC, database auth where applicable), enforcing least privilege.
+
+### Consequences
+- No secrets to rotate for platform access paths.
+- Requires RBAC role design and audit (identity governance becomes first-class).
+- Some legacy integrations may still require secrets (handled separately with strict controls).
+
+---
+
+## ADR-009 — Centralized governance at Management Group scope
+
+**Status:** Accepted
+
+### Context
+Multiple subscriptions and environments require consistent, scalable governance.
+
+### Decision
+Apply **RBAC and governance controls at Management Group scope**, and enforce **Conditional Access** for production administration (MFA + compliant device).
+
+### Consequences
+- Consistent controls across subscriptions with reduced drift.
+- Faster onboarding/offboarding and clearer separation of duties.
+- Requires disciplined role design and periodic access reviews.
+
+---

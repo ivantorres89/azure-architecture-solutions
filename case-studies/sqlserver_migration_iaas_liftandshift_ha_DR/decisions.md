@@ -1,146 +1,113 @@
-# Architectural Decisions & Trade-offs
+# Architecture Decision Records (ADRs)
 
-This document records the key architectural decisions made during the design of the
-SQL Server IaaS HA/DR solution, including rationale and known trade-offs.
+This document captures the **final architecture decisions** for the **SQL Server IaaS lift-and-shift (FCI) HA/DR** case study, based on the scenario described in `README.md` and the target diagram.
 
----
-
-## 1. Use of SQL Server Failover Cluster Instance (FCI)
-
-**Decision**  
-Use **SQL Server Always On Failover Cluster Instance (FCI)** as the core HA mechanism.
-
-**Rationale**
-- Existing on-premises architecture already uses FCI
-- Enables true lift-and-shift with minimal refactoring
-- Preserves OS-level control and compatibility
-- No dependency on SQL Server Enterprise features such as Availability Groups
-
-**Trade-off**
-- Requires shared storage
-- More complex networking than PaaS
-- Limited cross-region capabilities
+Format: **Context → Decision → Consequences**.
 
 ---
 
-## 2. High Availability Scope Limited to Single Region
+## ADR-001 — Keep SQL Server Failover Cluster Instance (FCI) for lift-and-shift
 
-**Decision**  
-Implement **HA only within the primary Azure region**.
+**Status:** Accepted
 
-**Rationale**
-- FCI requires **shared writable storage**
-- Azure FileStorage Premium can only be mounted **within a single region**
-- Cross-region shared storage is not supported by Azure
+### Context
+The existing platform is tightly coupled to **WSFC + FCI** and depends on instance-level behavior and OS-level agents. The primary objective is **minimal change** and reduced migration risk.
 
-**Outcome**
-- Automatic failover between SQL nodes within the region
-- Zero data loss for node-level or host-level failures
+### Decision
+Migrate using **SQL Server Always On Failover Cluster Instance (FCI)** on Azure VMs, preserving the existing topology and operational model.
 
----
-
-## 3. Azure FileStorage Premium as Shared Storage
-
-**Decision**  
-Use **Azure FileStorage Premium (SMB)** for FCI shared disks.
-
-**Rationale**
-- Fully supported for SQL Server FCI in Azure
-- Provides low-latency, high-IOPS storage
-- Simplifies lift-and-shift compared to Storage Spaces Direct
-
-**Trade-off**
-- No geo-replication (GRS not supported)
-- Storage must be rebuilt or restored during DR
+### Consequences
+- Maximum compatibility with existing operational practices and third-party tooling.
+- Requires shared storage and careful cluster networking configuration in Azure.
+- DR is inherently more complex than AG/PaaS approaches.
 
 ---
 
-## 4. Disaster Recovery Implemented with Azure Site Recovery (ASR)
+## ADR-002 — Shared storage via Azure Files Premium (SMB)
 
-**Decision**  
-Use **Azure Site Recovery** for cross-region disaster recovery.
+**Status:** Accepted
 
-**Rationale**
-- ASR replicates entire virtual machines
-- Suitable for IaaS workloads
-- Allows recovery in a paired Azure region
+### Context
+FCI requires shared writable storage. In Azure, the commonly supported shared storage option for FCI is SMB-based storage.
 
-**Key Limitation**
-- ASR does **not replicate Azure FileStorage**
-- Only VM disks are replicated
+### Decision
+Use **Azure Files Premium (SMB)** as the shared storage layer for the FCI in the primary region.
 
----
-
-## 5. Storage Recovery via Azure Backup
-
-**Decision**  
-Use **Azure Backup** for FileStorage recovery in DR region.
-
-**Rationale**
-- FileStorage Premium cannot be replicated across regions
-- Backups provide point-in-time recovery
-- Aligns with accepted RPO > 0
-
-**Trade-off**
-- Storage restore increases RTO
-- Manual or semi-automated recovery steps required
+### Consequences
+- Enables an FCI architecture without introducing Storage Spaces Direct complexity.
+- Shared storage remains a single-region dependency (no native cross-region active replication).
+- Storage performance/capacity must be provisioned and monitored independently.
 
 ---
 
-## 6. Separation of HA and DR Responsibilities
+## ADR-003 — HA is confined to a single region
 
-**Decision**  
-Explicitly separate **HA** and **DR** responsibilities.
+**Status:** Accepted
 
-| Capability | Technology |
-|-----------|-----------|
-| HA (node failure) | SQL Server FCI |
-| HA (infrastructure) | Availability Set / Zones |
-| DR (regional outage) | Azure Site Recovery + Backup |
+### Context
+Azure Files SMB mounts and the FCI shared storage model cannot be stretched across regions in a supported, writeable manner.
 
-**Rationale**
-- Avoids unsupported architectures
-- Aligns with Azure platform constraints
-- Provides predictable failure domains
+### Decision
+Deliver **automatic HA within the primary region only** (node/host failures), using FCI failover and Azure infrastructure constructs (Availability Zones or Availability Set).
 
----
-
-## 7. Why AlwaysOn Availability Groups Were Not Used
-
-**Rejected Option**  
-SQL Server Always On Availability Groups (AG)
-
-**Reasons for Rejection**
-
-- **Not a true lift-and-shift**  
-  Availability Groups require changes to the SQL topology and often to application connection handling.
-
-- **Application compatibility risk**  
-  Existing applications were tightly coupled to a single SQL instance and relied on instance-level features not easily portable to AGs.
-
-- **Licensing constraints**  
-  Availability Groups require SQL Server Enterprise Edition, increasing operational costs.
-
-- **Operational maturity**  
-  The existing operations team had deep expertise with WSFC + FCI but limited experience managing AG failover, replicas, and listener behavior.
-
-- **Migration risk over architectural elegance**  
-  The primary objective was to reduce migration risk rather than maximize cloud-native features.
-
-**Conclusion**  
-While Availability Groups offer superior cross-region failover capabilities, they were intentionally excluded to preserve compatibility, reduce risk, and align with the lift-and-shift strategy.
+### Consequences
+- Zero (or near-zero) data loss for intra-region failures.
+- Regional outage recovery is DR, not HA, and requires additional steps.
+- Architectural constraints are explicit and predictable for stakeholders.
 
 ---
 
-## Final Assessment
+## ADR-004 — Client connectivity via internal Load Balancer + DNS indirection
 
-This architecture intentionally accepts:
-- Higher RTO compared to PaaS
-- Manual intervention during DR
+**Status:** Accepted
 
-In exchange for:
-- Maximum compatibility
-- Minimal migration risk
-- Full infrastructure control
+### Context
+Clients need a stable name to connect to the SQL instance while the active node can change.
 
-This is a **realistic enterprise IaaS design**, not a theoretical or exam-only solution.
+### Decision
+Use an **internal Load Balancer** for the cluster/instance endpoint and publish a stable DNS name for the application to use.
+
+### Consequences
+- Stable endpoint for intra-region failover.
+- Load balancer configuration is non-trivial and must be validated during failover tests.
+- In regional DR scenarios, DNS/connection targeting may need explicit switching depending on the runbook.
+
+---
+
+## ADR-005 — DR via Azure Site Recovery for VMs, plus Azure Backup for Azure Files
+
+**Status:** Accepted
+
+### Context
+The business requires recovery from a full regional outage, but accepts **RPO > 0** and a higher RTO typical of lift-and-shift DR.
+
+### Decision
+Use:
+- **Azure Site Recovery (ASR)** to replicate SQL VMs to the DR region.
+- **Azure Backup** to restore Azure Files Premium in the DR region (since Azure Files is not replicated by ASR).
+
+### Consequences
+- DR orchestration is multi-step (VM recovery + storage restore + cluster validation).
+- RTO increases due to storage recovery and cluster bring-up.
+- RPO depends on backup frequency and restore point selection.
+
+---
+
+## ADR-006 — Explicitly separate HA and DR responsibilities
+
+**Status:** Accepted
+
+### Context
+Mixing HA and DR mechanisms can lead to unsupported designs and unclear recovery expectations.
+
+### Decision
+Adopt a deliberate split:
+- **HA (within region):** FCI + Azure infra redundancy
+- **DR (cross region):** ASR + Azure Backup + runbook-driven activation
+
+### Consequences
+- Clear operational playbooks and predictable failure domains.
+- Higher DR effort than AG/PaaS, accepted to preserve lift-and-shift constraints.
+- Requires regular DR drills to keep procedures reliable.
+
+---

@@ -8,7 +8,8 @@ from an on-premises datacenter to **Microsoft Azure using IaaS**, with a focus o
 
 Unlike traditional lift-and-shift approaches, this architecture intentionally
 adopts **SQL Server Always On Availability Groups (AG)** to achieve:
-- Automatic failover across availability zones and regions
+- Automatic failover across Availability Zones (intra-region)
+- Runbook-driven failover to a secondary region (DR)
 - Elimination of shared storage dependencies
 - Low RTO and near-zero RPO
 
@@ -41,7 +42,7 @@ The application and database were reviewed and approved for:
 - Automatic failover without manual intervention
 
 ### Disaster Recovery
-- Automatic failover to a secondary Azure region
+- Failover capability to a secondary Azure region (runbook-driven)
 - Near-zero data loss (RPO ≈ 0)
 - RTO measured in minutes
 
@@ -64,7 +65,7 @@ The application and database were reviewed and approved for:
 ### Secondary Region (East US)
 - Azure Virtual Network
 - SQL Server Availability Group replica (synchronous or asynchronous)
-- Automatic failover configured
+- DR replica configured (runbook-driven failover)
 - Independent storage per SQL node
 
 ### High Availability & Disaster Recovery Model
@@ -76,7 +77,7 @@ The application and database were reviewed and approved for:
 
 ## Architecture Diagram
 
-*(Diagram to be added – SQL Server Always On AG with zonal HA and cross-region DR)*
+![SQL Server Always On AG HA/DR](./sqlserver_migration_iaas_alwaysonag_ha_DR.jpg)
 
 ---
 

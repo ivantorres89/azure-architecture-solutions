@@ -1,118 +1,111 @@
-# Architectural Decisions & Trade-offs
+# Architecture Decision Records (ADRs)
 
-This document outlines the key architectural decisions taken to design a
-highly available and resilient SQL Server architecture on Azure using
-Always On Availability Groups.
+This document captures the **final architecture decisions** for the **SQL Server IaaS migration using Always On Availability Groups** case study, based on the scenario described in `README.md` and the target diagram.
 
----
-
-## 1. Use of SQL Server Always On Availability Groups (AG)
-
-**Decision**  
-Use **SQL Server Always On Availability Groups** as the core HA and DR mechanism.
-
-**Rationale**
-- Enables automatic failover without shared storage
-- Supports both zone-level and region-level resilience
-- Provides low RTO and near-zero RPO
-- Aligns with cloud-native design principles for Azure IaaS
+Format: **Context → Decision → Consequences**.
 
 ---
 
-## 2. Elimination of Shared Storage
+## ADR-001 — Use Always On Availability Groups (AG) for HA/DR (IaaS)
 
-**Decision**  
-Avoid shared storage entirely.
+**Status:** Accepted
 
-**Rationale**
-- Availability Groups replicate data at the database level
-- Each SQL node maintains its own local storage
-- Removes dependency on Azure FileStorage Premium
+### Context
+The database is a Tier-1 OLTP workload requiring **automatic failover within the primary region** and **near-zero data loss** during common infrastructure failures, without relying on shared storage.
 
-**Benefits**
-- No storage bottleneck
-- No storage recovery during DR
-- Improved scalability and reliability
+### Decision
+Use **SQL Server Always On Availability Groups** as the primary resilience mechanism:
+- **Synchronous** replicas across Availability Zones in the primary region for HA.
+- An **asynchronous** replica in a secondary region for DR.
 
----
-
-## 3. High Availability via Availability Zones
-
-**Decision**  
-Distribute AG replicas across **Availability Zones** in the primary region.
-
-**Rationale**
-- Protects against datacenter-level failures
-- Provides automatic intra-region failover
-- No manual intervention required
+### Consequences
+- Enables database-level replication without shared storage dependencies.
+- Requires **SQL Server Enterprise Edition** and operational maturity (replicas, quorum, monitoring).
+- Application connectivity must target the **AG listener**, not individual instances.
 
 ---
 
-## 4. Disaster Recovery via Cross-Region Availability Group Replication
+## ADR-002 — Automatic failover is intra-region only
 
-**Decision**  
-Configure an AG replica in a secondary Azure region with automatic failover.
+**Status:** Accepted
 
-**Rationale**
-- Native SQL Server replication mechanism
-- Faster recovery compared to VM-based DR solutions
-- No cluster rebuild required during failover
+### Context
+Cross-region automatic failover with a stretched WSFC/AG can introduce quorum complexity, split-brain risk, and increased latency across regions.
 
-**Outcome**
-- True active/passive (or active/active) regional DR
-- Predictable and low RTO/RPO
+### Decision
+Configure **automatic failover only between the synchronous replicas in the primary region**. Treat the secondary region replica as **DR** with **manual or orchestrated failover** (runbook-driven).
 
----
-
-## 5. Why Failover Cluster Instance (FCI) Was Rejected
-
-**Rejected Option**  
-SQL Server Always On Failover Cluster Instance (FCI)
-
-**Reasons for Rejection**
-
-- **Shared storage dependency**  
-  FCI requires shared writable storage, which cannot be replicated or geo-redundant in Azure.
-
-- **No automatic cross-region failover**  
-  FCI does not support automatic failover across regions.
-
-- **Higher RTO for DR**  
-  Disaster recovery requires VM replication, storage restore, and cluster rebuild.
-
-- **Operational complexity in Azure**  
-  Load balancers, storage recovery, and cluster management increase failure points.
-
-- **Not aligned with cloud-native resilience**  
-  FCI is suitable for lift-and-shift but suboptimal for modern Azure architectures.
+### Consequences
+- Predictable and safe HA failover inside the region.
+- DR recovery requires an explicit operational procedure and testing.
+- RTO for regional outages is higher than intra-region failover but aligns with typical enterprise DR practice.
 
 ---
 
-## 6. Why Azure Site Recovery (ASR) Was Not Used
+## ADR-003 — Eliminate shared storage; use local Premium SSD managed disks
 
-**Rejected Option**  
-Azure Site Recovery for SQL failover
+**Status:** Accepted
 
-**Reasons for Rejection**
-- ASR operates at VM level, not database level
-- Slower recovery compared to AG failover
-- Requires additional orchestration and validation
-- Unnecessary when AG provides native replication
+### Context
+Shared storage adds a single point of failure and is difficult to make zone- and geo-resilient for SQL FCI-style designs.
+
+### Decision
+Use **local managed disks** (Premium SSD) per SQL VM and rely on **AG database replication** for data redundancy.
+
+### Consequences
+- Removes dependency on shared SMB storage and improves failure isolation.
+- Requires a clear backup/restore strategy (Azure Backup / native SQL backups to Storage).
+- Each replica must be sized for independent storage capacity and IO requirements.
 
 ---
 
-## Final Assessment
+## ADR-004 — Client connectivity via AG listener behind an internal Load Balancer
 
-This architecture prioritizes:
-- Automatic failover
-- Low RTO and RPO
-- Regional fault isolation
-- Cloud-aligned design
+**Status:** Accepted
 
-In exchange for:
-- Higher SQL Server licensing cost
-- Increased architectural complexity
-- Application readiness requirements
+### Context
+Clients require a stable endpoint regardless of which replica is primary.
 
-This design represents a **modern, cloud-optimized SQL Server IaaS architecture**,
-suitable for business-critical workloads with strict availability objectives.
+### Decision
+Expose the **AG listener** through an **internal Standard Load Balancer** in the primary region, with health probing and backend pool membership for participating replicas.
+
+### Consequences
+- Stable connection endpoint for the application tier.
+- Additional configuration complexity (ILB, probe ports, WSFC/AG listener settings).
+- Load balancer becomes part of the critical path and must be monitored.
+
+---
+
+## ADR-005 — Separate VNets per region; controlled replication connectivity
+
+**Status:** Accepted
+
+### Context
+Replication traffic must be secured and controlled across regions, with clear blast radius boundaries.
+
+### Decision
+Use **separate VNets per region** and provide controlled connectivity for replication and management (peering/VPN/ExpressRoute), restricted by NSGs and required SQL/WSFC ports.
+
+### Consequences
+- Clear fault domains and isolation between regions.
+- Requires network design for DNS, routing, and port governance.
+- Cross-region data transfer costs must be considered.
+
+---
+
+## ADR-006 — Reject VM-level DR (ASR) as the primary database strategy
+
+**Status:** Accepted
+
+### Context
+VM-level replication (ASR) is coarse-grained and typically yields higher RPO/RTO for database workloads compared to database-native replication.
+
+### Decision
+Use **AG replication** for database continuity and failover, rather than making ASR the primary DR mechanism for SQL.
+
+### Consequences
+- Better control over data replication and database recovery behavior.
+- Still requires separate considerations for OS/config drift (patching, hardening, automation).
+- Demands robust monitoring and regular failover testing.
+
+---
